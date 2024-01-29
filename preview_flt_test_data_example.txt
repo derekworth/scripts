@@ -1,0 +1,19 @@
+#This is a brief example on how to convert image files into a video where each
+#video frame is labeled with its file number.
+
+img_path="/mnt/e/calspan2/"
+img_folder="5_20231201_cal3"
+output_dir="/mnt/e/"
+duration=49
+range="0 9999999999 3"
+
+#resize
+python3 /mnt/e/scripts/compress_to_png.py $img_path$img_folder $output_dir$img_folder png 864x864 $range
+#append filename to image
+python3 /mnt/e/scripts/append_filenames.py $output_dir$img_folder
+#rename images and make video
+/mnt/e/scripts/make_video.sh $output_dir$img_folder png $duration 24 864:864
+#remove images
+rm $output_dir$img_folder/*
+rmdir $output_dir$img_folder/
+mv "$output_dir"preview_"$img_folder".mp4 $img_path

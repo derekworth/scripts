@@ -1,0 +1,25 @@
+-----------------------
+#Run from this directory
+cp ./*.sh /home/user/Desktop/
+-----------------------
+#Update sudo with no password
+sudo visudo
+#append the following line to the end of the file
+user ALL=(ALL) NOPASSWD: ALL
+-----------------------
+#For auto updating NIC MTU at startup, add startNIC.sh to Ubuntu Startup Applications
+#Run the following to confirm MTU on eth0 has been set (MTU should now be 8966 instead of 1500):
+sudo ip link | grep eth0
+-----------------------
+#To set cam_acq and fltmsg to auto run at startup, add run.sh to Ubuntu Startup Applications
+#Reboot to confirm both modules auto start
+-----------------------
+#Update kernel parameters
+sudo vi /etc/sysctl.conf
+#append the following lines to the end of the file
+net.core.rmem_max=33554432
+net.core.wmem_max=33554432
+net.core.rmem_default=33554432
+net.core.wmem_default=33554432
+#run this to verify it took
+sudo /usr/sbin/sysctl -a | grep "net.core.*mem_"
