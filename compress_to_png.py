@@ -26,8 +26,7 @@ def convert_image(input_path, output_dir, dimensions, remove_old):
             img_resized.save(output_path, "PNG")
 
             if remove_old and input_path != output_path:
-                    os.remove(input_path)
-                    print(f"Removed: {input_path}")
+                os.remove(input_path)
             
             return True
     except Exception as e:
@@ -77,9 +76,9 @@ def process_images(src_dir, dst_dir, ext, dimensions, remove_old, start_idx, end
         print(f"Compression completed. {converted_count} image(s) compressed.")
 
 def main():
-    if len(sys.argv) < 5 or len(sys.argv) > 8:
+    if len(sys.argv) < 5 or len(sys.argv) > 10:
         script_file_name = os.path.basename(__file__)
-        print(f"Usage: python3 {script_file_name} <src_dir> <dest_dir> <ext> <width>x<height> [<start_idx>, <end_idx>, <interval>]")
+        print(f"Usage: python3 {script_file_name} <src_dir> <dest_dir> <ext> <width>x<height> [<start_idx>, <end_idx>, <interval> <continue?> <delete orig>]")
         sys.exit(1)
 
     input_directory = sys.argv[1]
@@ -94,7 +93,7 @@ def main():
     # update (if specified)
     if len(sys.argv) > 5:
         start_idx = int(sys.argv[5])
-    if len(sys.argv) > 6:
+    if len(sys.argv) > 6 and int(sys.argv[6]) >= 0 and int(sys.argv[6]) < end_idx:
         end_idx = int(sys.argv[6])
     if len(sys.argv) > 7:
         interval = int(sys.argv[7])
@@ -108,18 +107,27 @@ def main():
     print(f"Interval: {interval} ({math.floor((end_idx-start_idx)/interval)} images)")
     print("=============================")
 
-    user_input = input("Are you sure you want to continue? (Y/n): ")
-    if user_input != 'Y':
-        print("Script aborted.")
-        sys.exit(1)
+    if len(sys.argv) > 8 and sys.argv[8] == 'Y':
+        print("Bypassing 'want to continue' prompt...")
+    else:
+        user_input = input("Are you sure you want to continue? (Y/n): ")
+        if user_input != 'Y':
+            print("Script aborted.")
+            sys.exit(1)
 
     remove_old = False
-    user_input = input("Do you want to remove original files after conversion? (Y/n): ")
-    if user_input == 'Y':
+    if len(sys.argv) > 9 and sys.argv[9] == 'Y':
+        print("Bypassing 'remove original files' prompt... COMPRESSING, THEN REMOVING ORIGINALS!")
         remove_old = True
-        print("COMPRESSING, THEN REMOVING ORIGINALS...")
+    elif len(sys.argv) > 9 and sys.argv[9] != 'Y':
+        print("Bypassing 'remove original files' prompt... compressing without removing original images.")
     else:
-        print("Okay, compressing without removing original images.")
+        user_input = input("Do you want to remove original files after conversion? (Y/n): ")
+        if user_input == 'Y':
+            remove_old = True
+            print("COMPRESSING, THEN REMOVING ORIGINALS!")
+        else:
+            print("Okay, compressing without removing original images.")
 
     process_images(input_directory, output_directory, ext, dimensions, remove_old, start_idx, end_idx, interval)
 
