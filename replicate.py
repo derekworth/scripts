@@ -5,9 +5,11 @@ from tqdm import tqdm
 
 def copy_file_multiple_times(src_path, dst_dir, num_copies):
     try:
+        if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+
         _, file_ext = os.path.splitext(src_path)
         for i in tqdm(range(1, num_copies + 1)):
-            
             new_filename = f"{i}{file_ext}"
             dst_path = os.path.join(dst_dir, new_filename)
             shutil.copy2(src_path, dst_path)

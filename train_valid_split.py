@@ -32,7 +32,7 @@ def make_dir_if_not_exist(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
-def train_valid_split(src_dir, dst_dir, valid_perc):
+def train_valid_split(src_dir, dst_dir, train_perc):
     # check src_dir
     if not os.path.exists(src_dir):
         print("Source directory not found.")
@@ -82,7 +82,7 @@ def train_valid_split(src_dir, dst_dir, valid_perc):
             sys.exit(1)
 
     curr_idx = 0
-    stop_idx = int(len(img_names) * valid_perc)
+    stop_idx = int(len(img_names) * train_perc)
     print(f'Randomly copying {stop_idx} images to training set and {len(img_names) - stop_idx} to validation set.')
     for i in tqdm(range(len(img_names))):
         rand_idx = int(np.random.uniform() * (len(img_names)-1))
@@ -101,12 +101,12 @@ if __name__ == "__main__":
     # Check if the correct number of arguments is provided
     if len(sys.argv) != 4:
         script_file_name = os.path.basename(__file__)
-        print(f"Usage: python3 {script_file_name} <src_dir> <dst_dir> <valid_perc>")
+        print(f"Usage: python3 {script_file_name} <src_dir> <dst_dir> <train_perc>")
         sys.exit(1)
 
     # grab arguments
     src_dir = sys.argv[1]
     dst_dir = sys.argv[2]
-    valid_perc = float(sys.argv[3])
+    train_perc = float(sys.argv[3])
 
-    train_valid_split(src_dir, dst_dir, valid_perc)
+    train_valid_split(src_dir, dst_dir, train_perc)
