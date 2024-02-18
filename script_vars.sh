@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export script_append_filenames="python3 /mnt/d/calspan1/scripts/append_filenames.py"
+export script_append_filenames_to_images="python3 /mnt/d/calspan1/scripts/append_filenames_to_images.py"
 export script_append_text="python3 /mnt/d/calspan1/scripts/append_text.py"
 export script_compress_to_png="python3 /mnt/d/calspan1/scripts/compress_to_png.py"
 export script_make_video="/mnt/d/calspan1/scripts/make_video.sh"
