@@ -30,14 +30,24 @@ def is_point_inside_polygon(polygon, point):
     # Check if the point is inside the polygon
     return polygon.contains(point)
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     script_file_name = os.path.basename(__file__)
-    print(f"Usage: python3 {script_file_name} <label_dir> <polygon_path> <occlusion_max>")
+    print(f"Usage: python3 {script_file_name} <label_dir> <polygon_path> <min_visible> <occlusion_max>")
+    print("Note: image files must be png format.")
+    print("Hint: specify points in range between [0.0,1.0], for example poly.txt could contain:")
+    print(" 0.1046,1.0000")
+    print(" 0.1798,0.9120")
+    print(" 0.1742,0.8328")
+    print(" 1.0000,0.8270")
+    print(" 1.0000,1.0000")
+    print("Also, occlusion_max is a percentage between [0.0,1.0]")
+
     sys.exit(1)
 
 label_dir = sys.argv[1]
 polygon_path = sys.argv[2]
-occlusion_max = float(sys.argv[3])
+min_visible = int(sys.argv[3])
+occlusion_max = float(sys.argv[4])
 
 if occlusion_max > 1.0 or occlusion_max < 0.0:
     print(f"Please specify an occlusion threadhold in the range of: [0.0, 1.0]")
@@ -60,9 +70,6 @@ if len(poly_verts) < 3:
 # Create a Shapely polygon from the provided vertices
 polygon = Polygon(poly_verts)
 
-pt_out = (0.486, 0.696)
-pt_in = (0.486, 0.77)  # Test if this point is inside the square
-
 # Get a list of image files in the specified folder
 label_files = [f for f in os.listdir(label_dir) if f.lower().endswith(".txt")]
 
@@ -81,9 +88,9 @@ for index, filename in enumerate(tqdm(label_files)):
                 if is_point_inside_polygon(polygon, test_point):
                     num_occluded += 1
                 else:
-                    num_visible +=1
-        perc_occluded = num_occluded / (num_occluded + num_visible)
-        if perc_occluded >= occlusion_max:
+                    num_visible += 1
+
+        if num_visible < min_visible or (num_occluded / (num_occluded + num_visible)) >= occlusion_max:
             #remove both image and label
             image_dir = os.path.join(label_dir, "../images")
             name, ext = filename.split(".")
