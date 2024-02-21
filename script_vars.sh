@@ -13,3 +13,4 @@ export script_train_valid_split="python3 /mnt/d/calspan1/scripts/train_valid_spl
 export script_gen_yolov5_yaml="python3 /mnt/d/calspan1/scripts/gen_yolov5_yaml.py"
 export script_clean_latex="python3 /mnt/d/calspan1/scripts/clean_latex.py"
 export script_append_line="python3 /mnt/d/calspan1/scripts/append_line.py"
+export script_crop_images="python3 /mnt/d/calspan1/scripts/crop_images.py"
