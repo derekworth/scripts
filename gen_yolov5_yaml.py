@@ -11,22 +11,27 @@ def create_empty_text_file(file_path):
     except Exception as e:
         print(f"Error occurred: {e}")
     
-def generate_yolov5_yaml(prb_cnt, drg_cnt, yaml_path):
+def generate_yolov5_yaml(prb_cnt, drg_cnt, yaml_path, drg_1st):
     # create if not already exists
     create_empty_text_file(yaml_path)
-
-    content = 'a' * prb_cnt + 'b' * drg_cnt
 
     content = "train: ../train/images\n"
     content += "val: ../valid/images\n\n"
     content += f"nc: {prb_cnt + drg_cnt}\n"
 
     names = []
-    for i in range(prb_cnt):
-        names.append(f'p{i}')
-    
-    for i in range(drg_cnt):
-        names.append(f'd{i}')
+
+    if drg_1st:
+        for i in range(drg_cnt):
+            names.append(f'd{i}')
+        for i in range(prb_cnt):
+            names.append(f'p{i}')
+    else:
+        for i in range(prb_cnt):
+            names.append(f'p{i}')
+        for i in range(drg_cnt):
+            names.append(f'd{i}')
+
 
     content += f"names: {names}"
 
@@ -44,5 +49,14 @@ if __name__ == "__main__":
     prb_cnt = int(sys.argv[2])
     drg_cnt = int(sys.argv[3])
 
-    generate_yolov5_yaml(prb_cnt, drg_cnt, yaml_path)
+    drg_1st = False
+
+    user_input = input("Drogue points, then probe points? (Y/n): ")
+    if user_input == 'Y':
+        print("Okay, listing drogue points first followed by probe points.")
+        drg_1st = True
+    else:
+        print("Okay, listing probe points first followed by drogue points.")
+
+    generate_yolov5_yaml(prb_cnt, drg_cnt, yaml_path, drg_1st)
     print("Done.")
