@@ -201,6 +201,7 @@ plot_reliability(df, titles[4],                axs[4], max_range, samples_per_st
 custom_lines = [
     Line2D([0], [0], color="red", lw=2, linestyle=LINESTYLES["mean_rolling"]),
     Patch(facecolor="tab:blue", alpha=0.2),
+    Patch(facecolor="tab:green", alpha=0.2),
     Line2D([0], [0], marker="o", color="White", lw=2, markerfacecolor="tab:blue"),
     Line2D([0], [0], color="black", lw=1.6, linestyle=LINESTYLES["win_count"]),
     Line2D([0], [0], color="gray", lw=1.4, linestyle=LINESTYLES["threshold"])
@@ -209,7 +210,8 @@ custom_lines = [
 custom_descriptors = [
     "Mean (Rolling)",
     "\u00B12\u03c3 (Rolling)",
-    "Random Sample",
+    "Success Rate",
+    "Sample Observation",
     "Observation Count",
     "Acceptable Threshold (\u00B17cm)"
 ]
