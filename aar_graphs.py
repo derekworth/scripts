@@ -20,6 +20,20 @@ LINESTYLES = {
     "win_count": "dotted"
 }
 
+def compute_validity(series, threshold = 1, hist_size = 10):
+    valid = []
+    for i in range(len(series)):
+        if i < hist_size:
+            valid.append(False)  # Not enough data for the first 10 rows
+        else:
+            avg_prev = series[i-hist_size:i].mean()
+            diff = abs(series[i] - avg_prev)
+            isValid = diff < threshold
+            if not isValid:
+                print(f"{i} - {diff} removed")
+            valid.append(isValid)
+    return valid
+
 def plot_component(df, title, component, ax, max_range, samples_per_step, window_size, stride, mirror_y_axis = True):
     # stride > window size = missing/inaccurate data in plots
     if stride > window_size:
@@ -161,18 +175,25 @@ def plot_reliability(df, title, ax, max_range, samples_per_step, window_size, st
     
 max_range = None
 
-if len(sys.argv) != 6 and len(sys.argv) != 7:
+if len(sys.argv) != 8 and len(sys.argv) != 9:
     script_file_name = os.path.basename(__file__)
-    print(f"Usage: python3 {script_file_name} <csvfile> <output> <win_size> <stride> <samples_per_step> [<max_range>]")
+    print(f"Usage: python3 {script_file_name} <csvfile> <out_ext> <win_size> <stride> <samples_per_step> <dm_threshold> <hist_size> [<max_range>]")
+    print("CSV column headers: 'img_idx', 'tru_x', 'tru_y', 'tru_z', 'est_x', 'est_y', and 'est_z'")
     sys.exit(1)
-elif len(sys.argv) == 7:
-    max_range = float(sys.argv[6])
+elif len(sys.argv) == 9:
+    max_range = float(sys.argv[8])
 
 csvfile = sys.argv[1]
-output = sys.argv[2]
+out_ext = sys.argv[2]
 win_size = float(sys.argv[3])
 stride = float(sys.argv[4])
 samples_per_step = int(sys.argv[5])
+dm_threshold = float(sys.argv[6])
+hist_size = int(sys.argv[7])
+
+if out_ext != "pdf" and out_ext != "png":
+    print(f"Please specify 'pdf' or 'png' for out_ext. You specified: '{out_ext}'")
+    sys.exit(1)
 
 components = ["mag", "dx", "dy", "dz"]
 titles = ["Magnitude", "X Component", "Y Component", "Z Component", "Reliability"]
@@ -188,6 +209,13 @@ df["dy"] = df.apply(lambda row: row["tru_y"] - row["est_y"] , axis=1)
 df["dz"] = df.apply(lambda row: row["tru_z"] - row["est_z"] , axis=1)
 # compute magnitude error
 df["mag"] = df.apply(lambda row: np.sqrt(row["dx"] ** 2 + row["dy"] ** 2 + row["dz"] ** 2), axis=1)
+
+# invalidate estimates outside acceptable threshold limits (rate of change in est dist)
+df["valid"] = compute_validity(df["mag"], dm_threshold, hist_size)
+df.loc[~df['valid'], 'dx'] = np.nan
+df.loc[~df['valid'], 'dy'] = np.nan
+df.loc[~df['valid'], 'dz'] = np.nan
+df.loc[~df['valid'], 'mag'] = np.nan
 
 height_ratios = [1, 1, 1, 1, 0.6]
 fig, axs = plt.subplots(nrows=5, ncols=1, figsize=(8.5, 10.15), constrained_layout=True, gridspec_kw={'height_ratios': height_ratios})
@@ -229,6 +257,12 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=UserWarning)
     plt.tight_layout(rect=[0, 0, 1, 1])
 
-print(f"Saving plots to: {output}", end=None)
-plt.savefig(output, bbox_inches='tight')
+out_path, out_filename = os.path.split(csvfile)
+#remove file extension
+out_filename = os.path.splitext(out_filename)[0]
+
+out_path = os.path.join(out_path, out_filename + "." + out_ext)
+
+print(f"Saving plots to: {out_path}", end=None)
+plt.savefig(out_path, bbox_inches='tight')
 print("Done")
