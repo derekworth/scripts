@@ -23,7 +23,7 @@ LINESTYLES = {
 def compute_validity(series, threshold = 1, hist_size = 10):
     valid = []
     for i in range(len(series)):
-        if i < hist_size:
+        if i < hist_size or np.isnan(series[i]):
             valid.append(False)  # Not enough data for the first 10 rows
         else:
             avg_prev = series[i-hist_size:i].mean()
@@ -172,6 +172,18 @@ def plot_reliability(df, title, ax, max_range, samples_per_step, window_size, st
     ax2 = ax.twinx()
     ax2.plot(windows, win_cnt, label="Sample Count", linewidth=1, linestyle=LINESTYLES["win_count"], color="black", zorder=2)
     ax2.set_ylabel("Count")
+
+def calculate_diff(row):
+    if all(isinstance(val, float) for val in row):
+        return row.iloc[0] - row.iloc[1]
+    else:
+        return np.nan
+
+def calculate_mag(row):
+    if all(isinstance(val, float) for val in row):
+        return np.sqrt(row.iloc[0] ** 2 + row.iloc[1] ** 2 + row.iloc[2] ** 2)
+    else:
+        return np.nan
     
 max_range = None
 
@@ -204,11 +216,11 @@ print("Generating error plots.")
 # compute truth distance
 df["distance"] = df.apply(lambda row: np.sqrt(row["tru_x"] ** 2 + row["tru_y"] ** 2 + row["tru_z"] ** 2), axis=1)
 # compute the error components
-df["dx"] = df.apply(lambda row: row["tru_x"] - row["est_x"] , axis=1)
-df["dy"] = df.apply(lambda row: row["tru_y"] - row["est_y"] , axis=1)
-df["dz"] = df.apply(lambda row: row["tru_z"] - row["est_z"] , axis=1)
+df["dx"] = df[['tru_x','est_x']].apply(calculate_diff , axis=1)
+df["dy"] = df[['tru_y','est_y']].apply(calculate_diff , axis=1)
+df["dz"] = df[['tru_z','est_z']].apply(calculate_diff , axis=1)
 # compute magnitude error
-df["mag"] = df.apply(lambda row: np.sqrt(row["dx"] ** 2 + row["dy"] ** 2 + row["dz"] ** 2), axis=1)
+df["mag"] = df[['dx','dy','dz']].apply(calculate_mag , axis=1)
 
 # invalidate estimates outside acceptable threshold limits (rate of change in est dist)
 df["valid"] = compute_validity(df["mag"], dm_threshold, hist_size)

@@ -40,7 +40,8 @@ if len(sys.argv) != 5:
     print(" 0.1742,0.8328")
     print(" 1.0000,0.8270")
     print(" 1.0000,1.0000")
-    print("Also, occlusion_max is a percentage between [0.0,1.0]")
+    print("Also, occlusion_max is a percentage between [0.0,1.0] and label_dir is the")
+    print("path to the labels (don't worry, corresponding images will be removed too)")
 
     sys.exit(1)
 
