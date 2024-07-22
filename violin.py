@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def make_violin_plot(file_path, std_threshold, plot_title):
+def make_violin_plot(file_path, std_threshold, plot_title, err_threshold=None, vert_spacing=None):
     # Step 1: Read the CSV file into a pandas DataFrame
     data = pd.read_csv(file_path)
 
@@ -20,6 +20,27 @@ def make_violin_plot(file_path, std_threshold, plot_title):
 
     # Step 4: Plot the data as violin plots using matplotlib
     plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+
+    if err_threshold is not None:
+        # Add a horizontal line representing the threshold
+        threshold = err_threshold
+        plt.axhline(y=threshold, color='red', linestyle='--', linewidth=0.25)
+
+        if vert_spacing is not None:
+            vert_limit = vert_spacing
+        else:
+            vert_limit = 0.0275
+        
+        # Fill regions below and above threshold line with red and green respectively
+        plt.fill_between(np.arange(0.5, len(data.columns)+1.5), threshold, data.values.max()+vert_limit, color='red', alpha=0.1, linewidth=0)
+        plt.fill_between(np.arange(0.5, len(data.columns)+1.5), -vert_limit, threshold, color='green', alpha=0.1, linewidth=0)
+
+        # Adjust y-limits to include entire range of data
+        plt.ylim(-vert_limit, data.values.max()+vert_limit)
+
+        # Add text "7 cm" above the line
+        #plt.text(7.2, threshold + 0.001, '7 cm', ha='center', va='bottom', fontsize=10, color='black')
+        plt.text(6.5, threshold + 0.001, '7 cm', ha='center', va='bottom', fontsize=10, color='black')
 
     # Extract column headers from the DataFrame
     data_columns = data.columns.tolist()
@@ -50,25 +71,33 @@ def make_violin_plot(file_path, std_threshold, plot_title):
     median_line = plt.Line2D([], [], color='blue', marker='_', markersize=5, label='Median')
     mean_line = plt.Line2D([], [], color='red', marker='_', markersize=10, label='Mean')
 
-    # Add legend
-    plt.legend(handles=[median_line, mean_line], loc='upper right')
+    if err_threshold is not None:
+        error_above_line = plt.Line2D([], [], color='red', linewidth=8.0, label='Unacceptable', alpha=0.1)
+        error_below_line = plt.Line2D([], [], color='green', linewidth=8.0, label='Acceptable', alpha=0.1)
+        # Add legend
+        plt.legend(handles=[median_line, mean_line, error_above_line, error_below_line], loc='upper right', handlelength=2.0)
+    else:
+        # Add legend
+        plt.legend(handles=[median_line, mean_line], loc='upper right')
 
     # Show plot
-    plt.grid(True)
+    plt.grid(False)
     plt.tight_layout()
     plt.subplots_adjust(left=0.25, right=0.75, bottom=0.25, top=0.75)  # Adjust the left and right margins
     plt.savefig(file_path+".pdf", bbox_inches='tight')
 
 if __name__ == "__main__":
     # Check if the correct number of arguments is provided
-    if len(sys.argv) != 4:
+    if len(sys.argv) not in (4, 5, 6):
         script_file_name = os.path.basename(__file__)
-        print(f"Usage: python3 {script_file_name} <file_path> <std_threshold> <plot_title>")
+        print(f"Usage: python3 {script_file_name} <file_path> <std_threshold> <plot_title> [err_threshold] [vert_spacing]")
         sys.exit(1)
 
     # grab arguments
     file_path = sys.argv[1]
     std_threshold = float(sys.argv[2])
     plot_title = sys.argv[3]
+    err_threshold = float(sys.argv[4]) if len(sys.argv) >= 5 else None
+    vert_spacing = float(sys.argv[5]) if len(sys.argv) == 6 else None
 
-    make_violin_plot(file_path, std_threshold, plot_title)
+    make_violin_plot(file_path, std_threshold, plot_title, err_threshold, vert_spacing)
